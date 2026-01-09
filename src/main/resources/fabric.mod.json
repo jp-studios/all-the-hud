@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "allthehud",
+	"version": "${version}",
+	"name": "All the HUD",
+	"description": "One HUD mod to rule them all",
+	"authors": [
+		"JP Studios"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/user/jpstudios",
+		"sources": "https://github.com/jp-studios"
+	},
+	"license": "MIT",
+	"icon": "assets/allthehud/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.jpstudios.allthehud.AllTheHUD"
+		],
+		"client": [
+			"com.jpstudios.allthehud.AllTheHUDClient"
+		]
+	},
+	"mixins": [
+		"allthehud.mixins.json",
+		{
+			"config": "allthehud.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

@@ -13,13 +13,13 @@ Never get lost again. A clean, scrolling compass at the top of your screen shows
 - **Latest Bed** - House icon marking your most recent bed (respawn point)
 - **Latest Death** - Skull icon marking your latest death (auto-clears when you return)
 
-![Death, Home, and World Spawn](https://raw.githubusercontent.com/YOUR-USERNAME/all-the-hud/main/screenshots/Death_home_and_world_spawn.png)
+![Death, Home, and World Spawn](https://raw.githubusercontent.com/jp-studios/all-the-hud/main/screenshots/death_home_and_world_spawn.png)
 *Compass bar showing world spawn, your latest death, and your latest bed - always know where important locations are*
 
-![Overlapping Icons](https://raw.githubusercontent.com/YOUR-USERNAME/all-the-hud/main/screenshots/Overlapping_icons.png)
+![Overlapping Icons](https://raw.githubusercontent.com/jp-studios/all-the-hud/main/screenshots/overlapping_icons.png)
 *Smart overlap detection ensures you can still see markers clearly*
 
-![Private Update Messages](https://raw.githubusercontent.com/YOUR-USERNAME/all-the-hud/main/screenshots/private_update_messages.png)
+![Private Update Messages](https://raw.githubusercontent.com/jp-studios/all-the-hud/main/screenshots/private_update_messages.png)
 *Updates about the items on the compass are shown privately to you*
 
 ## What's Coming Next

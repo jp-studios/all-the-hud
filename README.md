@@ -41,6 +41,6 @@ Licensed under MIT - free to use, modify, and distribute. Created by **JP Studio
 
 ---
 
-**Download:** [Modrinth](https://modrinth.com/user/jpstudios) • [CurseForge](https://www.curseforge.com/members/jpstudios/projects) • [GitHub](https://github.com/YOUR-USERNAME/all-the-hud)
+**Download:** [Modrinth](https://modrinth.com/user/jpstudios) • [CurseForge](https://www.curseforge.com/members/jpstudios/projects) • [GitHub](https://github.com/jp-studios/all-the-hud)
 
 *Alpha Release: Features are functional but still in development. Please report bugs!*

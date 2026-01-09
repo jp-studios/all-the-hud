@@ -1,46 +1,89 @@
-# All the HUD
-### **One HUD mod to rule them all.**
+![Header](https://raw.githubusercontent.com/jp-studios/all-the-hud/main/screenshots/Header.png)
 
-Tired of installing dozens of separate HUD mods? All the HUD will combine the best features from multiple mods into a single, lightweight, client-side solution (currently in Alpha).
+# All the HUD: One HUD mod to rule them all
 
-## Features
+## **<span style="color:#e03e2d">Alpha Release</span>**
 
-### 🧭 Compass Bar
-Never get lost again. A clean, scrolling compass at the top of your screen shows cardinal directions with smooth rotation and precise tick marks every 15°. The semi-transparent background ensures perfect visibility without blocking your view. All markers automatically scale when far away (>500 blocks) and intelligently handle overlaps so you never lose sight of important locations.
+**<span style="color:#e03e2d">Only available on 1.21.1 Fabric during alpha. Features are functional but still in development. <a href="https://github.com/jp-studios/all-the-hud/issues" target="_blank" rel="nofollow">Please report bugs!</a></span>**
 
-### 📍 Smart Location Tracking
-- **World Spawn** - Blue globe always pointing home
-- **Latest Bed** - House icon marking your most recent bed (respawn point)
-- **Latest Death** - Skull icon marking your latest death (auto-clears when you return)
+Tired of installing dozens of separate HUD mods that bloat your modpack and conflict with other mods? I certainly did. All the HUD will _(eventually)_ combine the best features from multiple mods into a single, fully client-side solution that can work on any server.
 
-*Compass bar showing world spawn, your latest death, and your latest bed - always know where important locations are:*
+## **Planned Features**
+
+*   🧭 Compass bar (in active development)
+*   ⚙️ In-game config screen and settings import/export
+*   📊 Coordinates, time, biome, and other info displays from F3
+*   🎮 Hotbar tweaks to display tooltips, armor info, and more inventory
+*   ⚡️ Potion effect HUD
+*   💬 Chat area options
+*   🎯 Dynamic crosshairs
+*   👀 Auto-hide HUD elements
+*   💫 And much more
+
+***
+
+# **<span style="color:#2dc26b">Current Alpha Features</span>**
+
+### **🧭 Vanilla-Friendly Compass Bar**
+
+Never get lost again. Get a clean, scrolling compass with icons for important locations in a vanilla-friendly way (useful if radar maps aren't allowed).
+
+**_Compass bar showing your latest death, your latest bed, and world spawn:_**
+
 ![Death, Home, and World Spawn](https://raw.githubusercontent.com/jp-studios/all-the-hud/main/screenshots/death_home_and_world_spawn.png)
 
-*Smart overlap detection ensures you can still see markers clearly:*
+### **📍 Marker Details**
+
+*   ☠️ **Latest Death** - Skull icon marking your latest death (auto-clears when you return) and even puts your death coordinates in a private chat
+*   🏠 **Latest Bed** - House icon marking your most recent bed/respawn point set _(even Xaero's doesn't do this!)_
+*   🌎 **World Spawn** - Blue globe helps keep you oriented
+
+_Markers shrink when distant, and intelligently handle overlaps so you never lose sight of important locations._
+
 ![Overlapping Icons](https://raw.githubusercontent.com/jp-studios/all-the-hud/main/screenshots/overlapping_icons.png)
 
-*Updates about the items on the compass are shown privately to you:*
+_Any updates about your death coordinates or the items on the compass are shown privately only to you:_
+
 ![Private Update Messages](https://raw.githubusercontent.com/jp-studios/all-the-hud/main/screenshots/private_update_messages.png)
 
-## What's Coming Next
+***
 
-- 🌐 Nether/end portal tracking
-- 📊 Coordinates display (X, Y, Z)
-- 🎮 Raised hotbar
-- ⚡ Effect displays
-- 🎯 Dynamic crosshair
-- ⚙️ In-game config screen
+# **<span style="color:#f1c40f">Future Alpha Updates (What I'm Currently Working On)</span>**
 
-Want to request a feature? [Open an issue on GitHub!](https://github.com/jp-studios/all-the-hud/issues)
+**Adding Features to the Compass**
 
-## Technical Details & License
+*   🌐 Most recent nether/end dimension portal used
+*   🌀 Most recent endgate used
+*   ⚙️ In-game config screen and settings import/export
+*   ⚛️ Condensed compass views and other visual options
+*   🗺️ Holding a map indicates where you need to go to reach the map area
+*   📍 Holding a lodestone compass shows the lodestone location
+*   ❣️ Nether respawn beacon location
 
-**Client-side only** - Works on any server without requiring server-side installation or configuration, and built to not require any dependencies except Fabric. Minimal performance impact with persistent storage in `config/allthehud/`.
+**Want to request a feature?** [Open an issue on GitHub!](https://github.com/jp-studios/all-the-hud/issues)
 
-Licensed under MIT - free to use, modify, and distribute. Created by **JP Studios**.
+***
 
----
+## **Technical Details**
 
-**Download:** [Modrinth](https://modrinth.com/user/jpstudios) • [CurseForge](https://www.curseforge.com/members/jpstudios/projects) • [GitHub](https://github.com/jp-studios/all-the-hud)
+**Client-side only:** Works on any server without requiring additional dependencies or configuration (except Fabric). Minimal performance impact with world-specific storage in `config/allthehud/`.
 
-*Alpha Release: Features are functional but still in development. Please report bugs!*
+### **License**
+
+This mod is released as All Rights Reserved | Copyright ©JP Studios
+
+**<span style="color:#2dc26b">YES, You may use this mod freely for personal play and include the unmodified mod in modpacks without needing to ask.</span>**
+
+**You may not (unless granted permission by me):**
+
+*   Reupload or mirror this mod
+*   Distribute modified or forked versions
+*   Monetize this mod or derivatives
+*   Reuse code, textures, models, or other assets
+*   If you’re interested in collaborating, reach out first
+
+**This is a passion project. Please respect the time and care that went into it.**
+
+***
+
+**Download:** [Modrinth](https://modrinth.com/user/jpstudios) | [CurseForge](https://www.curseforge.com/members/jpstudios/projects) | [GitHub](https://github.com/jp-studios/all-the-hud)

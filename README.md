@@ -2,7 +2,7 @@
 
 # All the HUD: One HUD mod to rule them all
 
-## **<span style="color:#e03e2d">Alpha Release</span>**
+## **<span style="color:#e03e2d">⚠️ Alpha Release</span>**
 
 **<span style="color:#e03e2d">Only available on 1.21.1 Fabric during alpha. Features are functional but still in development. <a href="https://github.com/jp-studios/all-the-hud/issues" target="_blank" rel="nofollow">Please report bugs!</a></span>**
 

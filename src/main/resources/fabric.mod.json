@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "allthehud",
-	"version": "${version}",
+	"version": "0.1.1-alpha",
 	"name": "All the HUD",
 	"description": "One HUD mod to rule them all",
 	"authors": [
@@ -30,7 +30,7 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.18.4",
+		"fabricloader": ">=0.16.0",
 		"minecraft": "~1.21.1",
 		"java": ">=21",
 		"fabric-api": "*"

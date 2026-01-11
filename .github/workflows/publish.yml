@@ -142,6 +142,7 @@ jobs:
           dependencies: |
             fabric-api(required)
             modmenu(optional)
+          fail-mode: skip
 
       # Publish 1.20.1 to Modrinth and CurseForge
       - name: Download 1.20.1 artifact
@@ -167,6 +168,7 @@ jobs:
           dependencies: |
             fabric-api(required)
             modmenu(optional)
+          fail-mode: skip
 
       # Sync README to Modrinth after publishing
       - name: Sync README to Modrinth

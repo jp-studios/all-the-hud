@@ -1,9 +1,14 @@
 # Automatically publish to Modrinth and CurseForge when a GitHub release is published
+# Also syncs README to Modrinth when it changes
 name: publish
 
 on:
   release:
     types: [published]
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
 
 env:
   MINECRAFT_VERSIONS_1_20: "1.20.1"
@@ -11,7 +16,30 @@ env:
   JAVA_VERSION: 21
 
 jobs:
+  # Sync README to Modrinth when it changes
+  sync-readme:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync README to Modrinth
+        run: |
+          # Read README content
+          BODY=$(cat README.md)
+
+          # Update Modrinth project description via API
+          curl -X PATCH "https://api.modrinth.com/v2/project/${{ secrets.MODRINTH_PROJECT_ID }}" \
+            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg body "$BODY" '{body: $body}')"
+
+          echo "README synced to Modrinth"
+
+  # Build and publish on release
   build-and-publish:
+    if: github.event_name == 'release'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -119,3 +147,13 @@ jobs:
           dependencies: |
             fabric-api(required)
             modmenu(optional)
+
+      # Sync README to Modrinth after publishing
+      - name: Sync README to Modrinth
+        run: |
+          BODY=$(cat README.md)
+          curl -X PATCH "https://api.modrinth.com/v2/project/${{ secrets.MODRINTH_PROJECT_ID }}" \
+            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg body "$BODY" '{body: $body}')"
+          echo "README synced to Modrinth"

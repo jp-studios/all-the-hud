@@ -140,8 +140,7 @@ jobs:
           loaders: fabric
           game-versions: ${{ env.MINECRAFT_VERSIONS_1_21 }}
           dependencies: |
-            fabric-api(required)
-            modmenu(optional)
+            fabric-api
           fail-mode: skip
 
       # Publish 1.20.1 to Modrinth and CurseForge
@@ -166,8 +165,7 @@ jobs:
           loaders: fabric
           game-versions: ${{ env.MINECRAFT_VERSIONS_1_20 }}
           dependencies: |
-            fabric-api(required)
-            modmenu(optional)
+            fabric-api
           fail-mode: skip
 
       # Sync README to Modrinth after publishing

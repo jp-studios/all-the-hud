@@ -1,5 +1,5 @@
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 }
 
@@ -42,7 +42,7 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	// Add Mod Menu for development
-	modImplementation "com.terraformersmc:modmenu:11.0.1"
+	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {
@@ -54,7 +54,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = Integer.parseInt(project.java_version)
 }
 
 java {
@@ -63,8 +63,8 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.toVersion(project.java_version)
+	targetCompatibility = JavaVersion.toVersion(project.java_version)
 }
 
 jar {

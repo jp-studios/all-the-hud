@@ -9,6 +9,11 @@ on:
     branches: [main]
     paths:
       - 'README.md'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to publish (e.g., v0.1.2-alpha)'
+        required: true
 
 env:
   MINECRAFT_VERSIONS_1_20: "1.20.1"
@@ -39,11 +44,26 @@ jobs:
 
   # Build and publish on release
   build-and-publish:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || github.event.inputs.release_tag }}
+      RELEASE_NAME: ${{ github.event.release.name || github.event.inputs.release_tag }}
+      RELEASE_BODY: ${{ github.event.release.body || 'Manual publish' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get release info for manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          RELEASE_INFO=$(gh release view ${{ github.event.inputs.release_tag }} --json name,body)
+          echo "RELEASE_NAME=$(echo $RELEASE_INFO | jq -r '.name')" >> $GITHUB_ENV
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+          echo $RELEASE_INFO | jq -r '.body' >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Setup JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
@@ -113,10 +133,10 @@ jobs:
           curseforge-id: ${{ secrets.CURSEFORGE_PROJECT_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           files: publish/1.21.1/*.jar
-          name: ${{ github.event.release.name }}
-          version: ${{ github.event.release.tag_name }}
+          name: ${{ env.RELEASE_NAME }}
+          version: ${{ env.RELEASE_TAG }}
           version-type: alpha
-          changelog: ${{ github.event.release.body }}
+          changelog: ${{ env.RELEASE_BODY }}
           loaders: fabric
           game-versions: ${{ env.MINECRAFT_VERSIONS_1_21 }}
           dependencies: |
@@ -138,10 +158,10 @@ jobs:
           curseforge-id: ${{ secrets.CURSEFORGE_PROJECT_ID }}
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           files: publish/1.20.1/*.jar
-          name: "${{ github.event.release.name }} (1.20.1)"
-          version: "${{ github.event.release.tag_name }}-1.20.1"
+          name: "${{ env.RELEASE_NAME }} (1.20.1)"
+          version: "${{ env.RELEASE_TAG }}-1.20.1"
           version-type: alpha
-          changelog: ${{ github.event.release.body }}
+          changelog: ${{ env.RELEASE_BODY }}
           loaders: fabric
           game-versions: ${{ env.MINECRAFT_VERSIONS_1_20 }}
           dependencies: |

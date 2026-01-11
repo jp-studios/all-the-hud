@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HudRenderer {
-    
+
     // Textures for POI icons (normal and distant variants)
     private static final Identifier WORLD_SPAWN_ICON = Identifier.of("allthehud", "textures/poi-world-spawn.png");
     private static final Identifier WORLD_SPAWN_ICON_DISTANT = Identifier.of("allthehud", "textures/poi-world-spawn-distant.png");

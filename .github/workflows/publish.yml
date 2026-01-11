@@ -157,3 +157,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$(jq -n --arg body "$BODY" '{body: $body}')"
           echo "README synced to Modrinth"
+
+      - name: Reminder
+        run: |
+          echo "::warning::REMINDER: Manually update the CurseForge description at https://authors.curseforge.com/projects/1424186"

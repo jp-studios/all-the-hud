@@ -6,18 +6,49 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.world.World;
 
 public class HudRenderer {
 
-    // Textures for POI icons (normal and distant variants)
-    private static final Identifier WORLD_SPAWN_ICON = Identifier.of("allthehud", "textures/poi-world-spawn.png");
-    private static final Identifier WORLD_SPAWN_ICON_DISTANT = Identifier.of("allthehud", "textures/poi-world-spawn-distant.png");
-    private static final Identifier BED_ICON = Identifier.of("allthehud", "textures/poi-bed.png");
-    private static final Identifier BED_ICON_DISTANT = Identifier.of("allthehud", "textures/poi-bed-distant.png");
-    private static final Identifier DEATH_ICON = Identifier.of("allthehud", "textures/poi-death.png");
-    private static final Identifier DEATH_ICON_DISTANT = Identifier.of("allthehud", "textures/poi-death-distant.png");
+    // POI icon pairs (normal, distant)
+    private static final Identifier[] WORLD_SPAWN_ICONS = {
+        Identifier.of("allthehud", "textures/poi-world-spawn.png"),
+        Identifier.of("allthehud", "textures/poi-world-spawn-distant.png")
+    };
+    private static final Identifier[] BED_ICONS = {
+        Identifier.of("allthehud", "textures/poi-bed.png"),
+        Identifier.of("allthehud", "textures/poi-bed-distant.png")
+    };
+    private static final Identifier[] DEATH_ICONS = {
+        Identifier.of("allthehud", "textures/poi-death.png"),
+        Identifier.of("allthehud", "textures/poi-death-distant.png")
+    };
+    private static final Identifier[] NETHER_PORTAL_ICONS = {
+        Identifier.of("allthehud", "textures/poi-nether.png"),
+        Identifier.of("allthehud", "textures/poi-nether-distant.png")
+    };
+    private static final Identifier[] END_PORTAL_ICONS = {
+        Identifier.of("allthehud", "textures/poi-end.png"),
+        Identifier.of("allthehud", "textures/poi-end-distant.png")
+    };
+    private static final Identifier[] END_GATEWAY_ICONS = {
+        Identifier.of("allthehud", "textures/poi-gateway.png"),
+        Identifier.of("allthehud", "textures/poi-gateway-distant.png")
+    };
+    private static final Identifier[] LODESTONE_ICONS = {
+        Identifier.of("allthehud", "textures/poi-lodestone.png"),
+        Identifier.of("allthehud", "textures/poi-lodestone-distant.png")
+    };
+    private static final Identifier[] RESPAWN_ANCHOR_ICONS = {
+        Identifier.of("allthehud", "textures/poi-respawn-beacon.png"),
+        Identifier.of("allthehud", "textures/poi-respawn-beacon-distant.png")
+    };
+
+    // Compass bar constants
+    private static final int BAR_Y = 20;
+    private static final int SPACING = 60;
+    private static final float MAX_VISIBLE_ANGLE = 90.0f;
+    private static final int OVERLAP_THRESHOLD = 12;
 
     public static void register() {
         HudRenderCallback.EVENT.register(HudRenderer::renderHud);
@@ -25,385 +56,244 @@ public class HudRenderer {
 
     private static void renderHud(DrawContext drawContext, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
+        if (client.options.hudHidden || client.player == null || client.world == null) return;
 
-        // Don't render in F1 mode (hidden HUD)
-        if (client.options.hudHidden) {
-            return;
-        }
-
-        // Don't render if no player exists
-        if (client.player == null) {
-            return;
-        }
-
-        // Get screen dimensions
         int screenWidth = client.getWindow().getScaledWidth();
+        float yaw = ((client.player.getYaw() % 360) + 360) % 360; // Normalize to 0-360
 
-        // Get player's yaw rotation (0-360 degrees)
-        float yaw = client.player.getYaw();
-
-        // Normalize to 0-360 range
-        yaw = yaw % 360;
-        if (yaw < 0) {
-            yaw += 360;
-        }
-
-        // Render the compass bar
         renderCompassBar(drawContext, client, screenWidth, yaw);
     }
 
     private static void renderCompassBar(DrawContext drawContext, MinecraftClient client, int screenWidth, float yaw) {
-        int barY = 20;  // Distance from top of screen (text top position)
         int centerX = screenWidth / 2;
-        int spacing = 60;  // Pixels between each direction
-        
-        // Maximum visible range: 180 degrees (90 degrees on each side)
-        float maxVisibleAngle = 90.0f;
-        
-        // Add padding from screen edges (20% of screen width on each side)
         int edgePadding = screenWidth / 5;
 
-        // Draw semi-transparent black background behind the entire compass
-        // 30% opacity = 0x4D in hex (77/255 ≈ 30%)
-        int bgColor = 0x4D000000;  // ARGB: 30% alpha, black
-        int bgHeight = 20;  // Height of background bar
-        int bgY = barY - 6;  // Start a bit above the text
-        
-        // Calculate the width for 180 degrees (±90 degrees from center)
-        // At 60 pixels per 45 degrees, 180 degrees = 240 pixels
-        // Extended by 6px on each side (12px total)
-        int bgWidth = (int)(maxVisibleAngle * 2 * spacing / 45.0) + 12; // 90*2 * 60/45 + 12 = 252 pixels
-        int bgStartX = centerX - bgWidth / 2;
-        int bgEndX = centerX + bgWidth / 2;
-        
-        drawContext.fill(bgStartX, bgY, bgEndX, bgY + bgHeight, bgColor);
+        // Draw background
+        int bgWidth = (int)(MAX_VISIBLE_ANGLE * 2 * SPACING / 45.0) + 12;
+        drawContext.fill(centerX - bgWidth / 2, BAR_Y - 6, centerX + bgWidth / 2, BAR_Y + 14, 0x4D000000);
 
-        // Draw tick marks every 15 degrees (these scroll with the compass)
-        drawTickMarks(drawContext, centerX, barY, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth);
+        // Draw tick marks
+        drawTickMarks(drawContext, centerX, yaw, edgePadding, screenWidth);
 
-        // All 8 directions in order (duplicated for smooth wrapping)
+        // Draw direction labels
         String[] directions = {"S", "SW", "W", "NW", "N", "NE", "E", "SE", "S", "SW", "W", "NW", "N"};
         float[] angles = {0, 45, 90, 135, 180, 225, 270, 315, 360, 405, 450, 495, 540};
 
-        // Draw each direction
         for (int i = 0; i < directions.length; i++) {
-            // Calculate offset from center based on angle difference
-            float angleDiff = angles[i] - yaw;
+            float angleDiff = wrapAngle(angles[i] - yaw);
+            if (Math.abs(angleDiff) > MAX_VISIBLE_ANGLE) continue;
 
-            // Wrap around for smooth scrolling
-            if (angleDiff > 180) angleDiff -= 360;
-            if (angleDiff < -180) angleDiff += 360;
-
-            // Only show directions within 180 degree range (±90 degrees)
-            if (Math.abs(angleDiff) > maxVisibleAngle) {
-                continue;
-            }
-
-            // Calculate X position (pixels per degree)
-            int x = centerX + (int)(angleDiff * spacing / 45.0);
-
-            // Only draw if visible on screen (with padding)
+            int x = centerX + (int)(angleDiff * SPACING / 45.0);
             if (x > edgePadding && x < screenWidth - edgePadding) {
-                String direction = directions[i];
-                int textWidth = client.textRenderer.getWidth(direction);
-
-                // Calculate distance from center
-                float distanceFromCenter = Math.abs(angleDiff);
-
-                // Simple two-color system: White when centered, same gray for everything else
-                int color;
-                boolean drawShadow;
-                if (distanceFromCenter < 20) {
-                    color = 0xFFFFFF;  // White - within 20 degrees of facing direction
-                    drawShadow = true;  // Only draw shadow on white text
-                } else {
-                    color = 0xAAAAAA;  // All unfocused directions are the same light gray
-                    drawShadow = false;
-                }
-
-                // Draw the direction text (with shadow only if white)
-                drawContext.drawText(client.textRenderer, direction, x - textWidth / 2, barY, color, drawShadow);
+                String dir = directions[i];
+                int textWidth = client.textRenderer.getWidth(dir);
+                boolean focused = Math.abs(angleDiff) < 20;
+                drawContext.drawText(client.textRenderer, dir, x - textWidth / 2, BAR_Y,
+                    focused ? 0xFFFFFF : 0xAAAAAA, focused);
             }
         }
 
-        // Draw center marker (double tick marks - one above and one below the text)
-        // Top tick mark (above text with small gap)
-        drawContext.fill(centerX, barY - 4, centerX + 1, barY - 2, 0xFFFFFFFF);
-        
-        // Bottom tick mark (below text with small gap)
-        drawContext.fill(centerX, barY + 10, centerX + 1, barY + 12, 0xFFFFFFFF);
+        // Draw center marker
+        drawContext.fill(centerX, BAR_Y - 4, centerX + 1, BAR_Y - 2, 0xFFFFFFFF);
+        drawContext.fill(centerX, BAR_Y + 10, centerX + 1, BAR_Y + 12, 0xFFFFFFFF);
 
-        // Draw POIs (Points of Interest) AFTER everything else so they're always on top
-        // Ordered so world spawn is furthest back (drawn first), death is on top (drawn last)
-        // Track X positions for overlap detection
-        List<Integer> drawnPOIPositions = new ArrayList<>();
-        
-        // First pass: calculate all positions and detect overlaps
-        Integer spawnX = calculatePOIXPosition(client, client.world != null ? client.world.getSpawnPos() : null, centerX, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth);
-        Integer bedX = calculatePOIXPosition(client, POIData.getBedLocation(), centerX, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth);
-        Integer deathX = calculatePOIXPosition(client, POIData.getDeathLocation(), centerX, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth);
-        
-        // Detect overlaps
-        boolean spawnOverlapped = false;
-        boolean bedOverlapped = false;
-        boolean bedOverlaps = false;
-        boolean deathOverlaps = false;
-        
-        // Check if spawn is overlapped by bed or death
-        if (spawnX != null) {
-            if (bedX != null && Math.abs(spawnX - bedX) < 12) spawnOverlapped = true;
-            if (deathX != null && Math.abs(spawnX - deathX) < 12) spawnOverlapped = true;
-        }
-        
-        // Check if bed overlaps spawn or is overlapped by death
-        if (bedX != null) {
-            if (spawnX != null && Math.abs(bedX - spawnX) < 12) bedOverlaps = true;
-            if (deathX != null && Math.abs(bedX - deathX) < 12) bedOverlapped = true;
-        }
-        
-        // Check if death overlaps spawn or bed
-        if (deathX != null) {
-            if (spawnX != null && Math.abs(deathX - spawnX) < 12) deathOverlaps = true;
-            if (bedX != null && Math.abs(deathX - bedX) < 12) deathOverlaps = true;
-        }
-        
-        // Draw world spawn
-        // If overlapped by another POI, move UP 2px and scale down
-        // If not overlapped, no offset and full size
-        int spawnYOffset = spawnOverlapped ? -2 : 0;
-        Integer spawnDrawnX = drawWorldSpawnPOI(drawContext, client, centerX, barY, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth, spawnYOffset, spawnOverlapped);
-        if (spawnDrawnX != null) {
-            drawnPOIPositions.add(spawnDrawnX);
-        }
-        
-        // Draw bed
-        // If overlapping spawn, move DOWN 3px and scale
-        // If overlapped by death (and not overlapping spawn), move UP 2px and scale
-        // If both, the DOWN takes priority (it's in the middle)
-        int bedYOffset = 0;
-        boolean bedIsScaled = false;
-        if (bedOverlaps && bedOverlapped) {
-            bedYOffset = 3;  // Middle of stack, move down
-            bedIsScaled = true;
-        } else if (bedOverlaps) {
-            bedYOffset = 3;  // Overlapping spawn, move down
-            bedIsScaled = true;
-        } else if (bedOverlapped) {
-            bedYOffset = -2;  // Overlapped by death, move up
-            bedIsScaled = true;
-        }
-        Integer bedDrawnX = drawBedPOI(drawContext, client, centerX, barY, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth, bedYOffset, bedIsScaled);
-        if (bedDrawnX != null) {
-            drawnPOIPositions.add(bedDrawnX);
-        }
-        
-        // Draw death
-        // If overlapping anything, move DOWN 3px and scale
-        int deathYOffset = deathOverlaps ? 3 : 0;
-        drawDeathPOI(drawContext, client, centerX, barY, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth, deathYOffset, deathOverlaps);
+        // Draw POIs
+        drawPOIs(drawContext, client, centerX, yaw, edgePadding, screenWidth);
     }
 
-    private static void drawTickMarks(DrawContext drawContext, int centerX, int barY, float yaw, int spacing, float maxVisibleAngle, int edgePadding, int screenWidth) {
-        // Draw tick marks at world angles (they scroll with cardinal directions)
-        // We need to iterate through actual world angles just like we do for direction labels
-        
-        // Create an array of all tick mark angles (every 15 degrees around the full circle)
-        // Similar to how we duplicate direction angles for wrapping
-        float[] tickAngles = new float[48];  // 360/15 = 24 positions, doubled for wrapping
-        for (int i = 0; i < 48; i++) {
-            tickAngles[i] = (i * 15) % 360;
-        }
-        
-        for (float angle : tickAngles) {
-            // Skip cardinal/intercardinal directions (every 45 degrees) - they have text labels
-            if (angle % 45 == 0) {
-                continue;
-            }
-            
-            // Calculate offset from center based on angle difference (same logic as direction labels)
-            float angleDiff = angle - yaw;
-            
-            // Wrap around for smooth scrolling
-            if (angleDiff > 180) angleDiff -= 360;
-            if (angleDiff < -180) angleDiff += 360;
-            
-            // Only show tick marks within visible range
-            if (Math.abs(angleDiff) > maxVisibleAngle) {
-                continue;
-            }
-            
-            // Calculate X position (same formula as direction labels)
-            int x = centerX + (int)(angleDiff * spacing / 45.0);
-            
-            // Only draw if visible on screen (with padding)
+    private static void drawTickMarks(DrawContext drawContext, int centerX, float yaw, int edgePadding, int screenWidth) {
+        for (int i = 0; i < 24; i++) {
+            float angle = i * 15;
+            if (angle % 45 == 0) continue; // Skip cardinal/intercardinal directions
+
+            float angleDiff = wrapAngle(angle - yaw);
+            if (Math.abs(angleDiff) > MAX_VISIBLE_ANGLE) continue;
+
+            int x = centerX + (int)(angleDiff * SPACING / 45.0);
             if (x > edgePadding && x < screenWidth - edgePadding) {
-                // 70% white opacity for rotating tick marks (0xB3 = 179/255 ≈ 70%)
-                int tickColor = 0xB3B3B3B3;  // Gray with 70% opacity for differentiation
-                
-                // Tick mark vertically centered with text (4 pixels tall)
-                // Text top is at barY, text is ~8px tall, so center is at barY + 4
-                drawContext.fill(x, barY + 2, x + 1, barY + 6, tickColor);
+                drawContext.fill(x, BAR_Y + 2, x + 1, BAR_Y + 6, 0xB3B3B3B3);
             }
         }
     }
 
-    /**
-     * Calculate the X position for a POI without drawing it
-     * Returns null if POI is not visible
-     */
-    private static Integer calculatePOIXPosition(MinecraftClient client, BlockPos targetPos, int centerX, float yaw, int spacing, float maxVisibleAngle, int edgePadding, int screenWidth) {
-        if (targetPos == null || client.player == null) {
-            return null;
-        }
-        
-        // Calculate angle to target
-        double dx = targetPos.getX() - client.player.getX();
-        double dz = targetPos.getZ() - client.player.getZ();
-        double angleToTarget = Math.toDegrees(Math.atan2(-dx, dz));
-        
-        // Normalize to 0-360
-        angleToTarget = angleToTarget % 360;
-        if (angleToTarget < 0) {
-            angleToTarget += 360;
-        }
+    private static void drawPOIs(DrawContext drawContext, MinecraftClient client, int centerX, float yaw, int edgePadding, int screenWidth) {
+        var dimKey = client.world.getRegistryKey();
+        boolean isOverworld = dimKey == World.OVERWORLD;
+        boolean isNether = dimKey == World.NETHER;
+        boolean isEnd = dimKey == World.END;
 
-        // Calculate angle difference
-        float angleDiff = (float)(angleToTarget - yaw);
-        if (angleDiff > 180) angleDiff -= 360;
-        if (angleDiff < -180) angleDiff += 360;
+        // Calculate all POI X positions for overlap detection
+        Integer spawnX = isOverworld ? calcPOIX(client, client.world.getSpawnPos(), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer bedX = isOverworld ? calcPOIX(client, POIData.getBedLocation(), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer netherX = (isOverworld || isNether) ? calcPOIX(client, POIData.getNetherPortalLocation(isNether), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer endX = (isOverworld || isEnd) ? calcPOIX(client, POIData.getEndPortalLocation(isEnd), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer gatewayX = isEnd ? calcPOIX(client, POIData.getEndGatewayLocation(), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer anchorX = isNether ? calcPOIX(client, POIData.getRespawnAnchorLocation(), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer lodestoneX = POIData.isLodestoneVisibleInDimension(dimKey) ? calcPOIX(client, POIData.getLodestoneLocation(), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer deathX = dimKey.equals(POIData.getDeathDimension()) ? calcPOIX(client, POIData.getDeathLocation(), centerX, yaw, edgePadding, screenWidth) : null;
 
-        // Check if within visible range
-        if (Math.abs(angleDiff) > maxVisibleAngle) {
-            return null;
-        }
+        // Draw POIs by dimension (back to front order)
+        // Stacking: back=+2x/-2y, middle=no offset, front=-2x/+2y; all overlapping icons scale to 90%
+        if (isOverworld) {
+            // Order: spawn, nether, end, lodestone, bed, death
+            Integer[] after = {netherX, endX, lodestoneX, bedX, deathX};
+            drawPOI(drawContext, client, client.world.getSpawnPos(), WORLD_SPAWN_ICONS, centerX, yaw, edgePadding, screenWidth,
+                false, anyOverlap(spawnX, after));
 
-        // Calculate X position
-        int x = centerX + (int)(angleDiff * spacing / 45.0);
+            Integer[] beforeN = {spawnX};
+            Integer[] afterN = {endX, lodestoneX, bedX, deathX};
+            drawPOI(drawContext, client, POIData.getNetherPortalLocation(false), NETHER_PORTAL_ICONS, centerX, yaw, edgePadding, screenWidth,
+                anyOverlap(netherX, beforeN), anyOverlap(netherX, afterN));
 
-        // Check if visible on screen
-        if (x > edgePadding + 5 && x < screenWidth - edgePadding - 5) {
-            return x;
-        }
-        
-        return null;
-    }
+            Integer[] beforeE = {spawnX, netherX};
+            Integer[] afterE = {lodestoneX, bedX, deathX};
+            drawPOI(drawContext, client, POIData.getEndPortalLocation(false), END_PORTAL_ICONS, centerX, yaw, edgePadding, screenWidth,
+                anyOverlap(endX, beforeE), anyOverlap(endX, afterE));
 
-    private static Integer drawWorldSpawnPOI(DrawContext drawContext, MinecraftClient client, int centerX, int barY, float yaw, int spacing, float maxVisibleAngle, int edgePadding, int screenWidth, int yOffset, boolean isOverlapping) {
-        if (client.world == null) {
-            return null;
-        }
+            if (lodestoneX != null) {
+                Integer[] beforeL = {spawnX, netherX, endX};
+                Integer[] afterL = {bedX, deathX};
+                drawPOI(drawContext, client, POIData.getLodestoneLocation(), LODESTONE_ICONS, centerX, yaw, edgePadding, screenWidth,
+                    anyOverlap(lodestoneX, beforeL), anyOverlap(lodestoneX, afterL));
+            }
 
-        // Get world spawn position
-        BlockPos spawnPos = client.world.getSpawnPos();
-        
-        // Calculate and draw POI icon with distance variants
-        return drawPOIIconWithVariants(drawContext, client, spawnPos, WORLD_SPAWN_ICON, WORLD_SPAWN_ICON_DISTANT, centerX, barY, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth, yOffset, isOverlapping);
-    }
+            BlockPos bedPos = POIData.getBedLocation();
+            if (bedPos != null && !bedPos.equals(client.world.getSpawnPos())) {
+                Integer[] beforeB = {spawnX, netherX, endX, lodestoneX};
+                Integer[] afterB = {deathX};
+                drawPOI(drawContext, client, bedPos, BED_ICONS, centerX, yaw, edgePadding, screenWidth,
+                    anyOverlap(bedX, beforeB), anyOverlap(bedX, afterB));
+            }
 
-    private static Integer drawBedPOI(DrawContext drawContext, MinecraftClient client, int centerX, int barY, float yaw, int spacing, float maxVisibleAngle, int edgePadding, int screenWidth, int yOffset, boolean isOverlapping) {
-        if (!POIData.hasBedLocation()) {
-            return null;
-        }
-        
-        BlockPos bedPos = POIData.getBedLocation();
-        if (bedPos != null && client.world != null) {
-            // Only show bed icon if it's different from world spawn
-            BlockPos worldSpawn = client.world.getSpawnPos();
-            if (!bedPos.equals(worldSpawn)) {
-                return drawPOIIconWithVariants(drawContext, client, bedPos, BED_ICON, BED_ICON_DISTANT, centerX, barY, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth, yOffset, isOverlapping);
+            if (deathX != null) {
+                Integer[] beforeD = {spawnX, netherX, endX, lodestoneX, bedX};
+                drawPOI(drawContext, client, POIData.getDeathLocation(), DEATH_ICONS, centerX, yaw, edgePadding, screenWidth,
+                    anyOverlap(deathX, beforeD), false);
+            }
+
+        } else if (isNether) {
+            // Order: nether, lodestone, anchor, death
+            Integer[] afterN = {lodestoneX, anchorX, deathX};
+            drawPOI(drawContext, client, POIData.getNetherPortalLocation(true), NETHER_PORTAL_ICONS, centerX, yaw, edgePadding, screenWidth,
+                false, anyOverlap(netherX, afterN));
+
+            if (lodestoneX != null) {
+                Integer[] beforeL = {netherX};
+                Integer[] afterL = {anchorX, deathX};
+                drawPOI(drawContext, client, POIData.getLodestoneLocation(), LODESTONE_ICONS, centerX, yaw, edgePadding, screenWidth,
+                    anyOverlap(lodestoneX, beforeL), anyOverlap(lodestoneX, afterL));
+            }
+
+            Integer[] beforeA = {netherX, lodestoneX};
+            Integer[] afterA = {deathX};
+            drawPOI(drawContext, client, POIData.getRespawnAnchorLocation(), RESPAWN_ANCHOR_ICONS, centerX, yaw, edgePadding, screenWidth,
+                anyOverlap(anchorX, beforeA), anyOverlap(anchorX, afterA));
+
+            if (deathX != null) {
+                Integer[] beforeD = {netherX, lodestoneX, anchorX};
+                drawPOI(drawContext, client, POIData.getDeathLocation(), DEATH_ICONS, centerX, yaw, edgePadding, screenWidth,
+                    anyOverlap(deathX, beforeD), false);
+            }
+
+        } else if (isEnd) {
+            // Order: end, gateway, lodestone, death
+            Integer[] afterE = {gatewayX, lodestoneX, deathX};
+            drawPOI(drawContext, client, POIData.getEndPortalLocation(true), END_PORTAL_ICONS, centerX, yaw, edgePadding, screenWidth,
+                false, anyOverlap(endX, afterE));
+
+            Integer[] beforeG = {endX};
+            Integer[] afterG = {lodestoneX, deathX};
+            drawPOI(drawContext, client, POIData.getEndGatewayLocation(), END_GATEWAY_ICONS, centerX, yaw, edgePadding, screenWidth,
+                anyOverlap(gatewayX, beforeG), anyOverlap(gatewayX, afterG));
+
+            if (lodestoneX != null) {
+                Integer[] beforeL = {endX, gatewayX};
+                Integer[] afterL = {deathX};
+                drawPOI(drawContext, client, POIData.getLodestoneLocation(), LODESTONE_ICONS, centerX, yaw, edgePadding, screenWidth,
+                    anyOverlap(lodestoneX, beforeL), anyOverlap(lodestoneX, afterL));
+            }
+
+            if (deathX != null) {
+                Integer[] beforeD = {endX, gatewayX, lodestoneX};
+                drawPOI(drawContext, client, POIData.getDeathLocation(), DEATH_ICONS, centerX, yaw, edgePadding, screenWidth,
+                    anyOverlap(deathX, beforeD), false);
             }
         }
-        return null;
     }
 
-    private static void drawDeathPOI(DrawContext drawContext, MinecraftClient client, int centerX, int barY, float yaw, int spacing, float maxVisibleAngle, int edgePadding, int screenWidth, int yOffset, boolean isOverlapping) {
-        if (!POIData.hasDeathLocation()) {
-            return;
+    /** Check if pos overlaps with any position in the array */
+    private static boolean anyOverlap(Integer pos, Integer[] others) {
+        if (pos == null) return false;
+        for (Integer other : others) {
+            if (other != null && Math.abs(pos - other) < OVERLAP_THRESHOLD) return true;
         }
-
-        BlockPos deathPos = POIData.getDeathLocation();
-        if (deathPos != null) {
-            drawPOIIconWithVariants(drawContext, client, deathPos, DEATH_ICON, DEATH_ICON_DISTANT, centerX, barY, yaw, spacing, maxVisibleAngle, edgePadding, screenWidth, yOffset, isOverlapping);
-        }
+        return false;
     }
 
-    /**
-     * Generic method to draw any POI icon on the compass bar with distance-based variant switching
-     * Returns the X position if drawn, null otherwise
-     */
-    private static Integer drawPOIIconWithVariants(DrawContext drawContext, MinecraftClient client, BlockPos targetPos, Identifier normalIcon, Identifier distantIcon, int centerX, int barY, float yaw, int spacing, float maxVisibleAngle, int edgePadding, int screenWidth, int yOffset, boolean isOverlapping) {
-        // Calculate angle to target from player position
-        double dx = targetPos.getX() - client.player.getX();
-        double dz = targetPos.getZ() - client.player.getZ();
-        
-        // Calculate 2D horizontal distance
+    /** Wrap angle difference to -180..180 range */
+    private static float wrapAngle(float angle) {
+        if (angle > 180) return angle - 360;
+        if (angle < -180) return angle + 360;
+        return angle;
+    }
+
+    /** Calculate POI X position (null if not visible) */
+    private static Integer calcPOIX(MinecraftClient client, BlockPos pos, int centerX, float yaw, int edgePadding, int screenWidth) {
+        if (pos == null) return null;
+
+        double dx = pos.getX() - client.player.getX();
+        double dz = pos.getZ() - client.player.getZ();
+        float angleDiff = wrapAngle((float)(((Math.toDegrees(Math.atan2(-dx, dz)) % 360) + 360) % 360 - yaw));
+
+        if (Math.abs(angleDiff) > MAX_VISIBLE_ANGLE) return null;
+
+        int x = centerX + (int)(angleDiff * SPACING / 45.0);
+        return (x > edgePadding + 5 && x < screenWidth - edgePadding - 5) ? x : null;
+    }
+
+    /** Draw a POI icon with overlap-based stacking */
+    private static void drawPOI(DrawContext drawContext, MinecraftClient client, BlockPos pos, Identifier[] icons,
+                                int centerX, float yaw, int edgePadding, int screenWidth,
+                                boolean overlapsBefore, boolean overlapsAfter) {
+        if (pos == null) return;
+
+        double dx = pos.getX() - client.player.getX();
+        double dz = pos.getZ() - client.player.getZ();
         double distance = Math.sqrt(dx * dx + dz * dz);
-        
-        // Convert to angle (atan2 returns radians, convert to degrees)
-        // Minecraft's coordinate system: North = -Z, South = +Z, West = -X, East = +X
-        // Minecraft yaw: South = 0°, West = 90°, North = 180°, East = 270°
-        // We use -dx because X axis is inverted in Minecraft's yaw system
-        double angleToTarget = Math.toDegrees(Math.atan2(-dx, dz));
-        
-        // Normalize to 0-360
-        angleToTarget = angleToTarget % 360;
-        if (angleToTarget < 0) {
-            angleToTarget += 360;
+        float angleDiff = wrapAngle((float)(((Math.toDegrees(Math.atan2(-dx, dz)) % 360) + 360) % 360 - yaw));
+
+        if (Math.abs(angleDiff) > MAX_VISIBLE_ANGLE) return;
+
+        int x = centerX + (int)(angleDiff * SPACING / 45.0);
+        if (x <= edgePadding + 5 || x >= screenWidth - edgePadding - 5) return;
+
+        // Select icon variant (distant if >500 blocks or near edge)
+        Identifier icon = (distance > 500.0 || Math.abs(angleDiff) > 75) ? icons[1] : icons[0];
+
+        // Calculate offset based on overlap position in stack
+        int xOff = 0, yOff = 0;
+        boolean isOverlapping = overlapsBefore || overlapsAfter;
+        if (overlapsBefore && !overlapsAfter) {
+            xOff = -2; yOff = 2;  // Front
+        } else if (overlapsAfter && !overlapsBefore) {
+            xOff = 2; yOff = -2;  // Back
         }
+        // Middle (both) = no offset but still scales
 
-        // Calculate angle difference from player's facing direction
-        float angleDiff = (float)(angleToTarget - yaw);
-        
-        // Wrap around for smooth scrolling
-        if (angleDiff > 180) angleDiff -= 360;
-        if (angleDiff < -180) angleDiff += 360;
+        int drawX = x - 8 + xOff;
+        int drawY = BAR_Y - 19 + yOff;
 
-        // Only show if within visible range
-        if (Math.abs(angleDiff) > maxVisibleAngle) {
-            return null;
+        if (isOverlapping) {
+            drawContext.getMatrices().push();
+            float iconCenterX = x + xOff;
+            float iconCenterY = BAR_Y - 19 + yOff + 8.5f;
+            drawContext.getMatrices().translate(iconCenterX, iconCenterY, 0);
+            drawContext.getMatrices().scale(0.9f, 0.9f, 1.0f);
+            drawContext.getMatrices().translate(-iconCenterX, -iconCenterY, 0);
+            drawContext.drawTexture(icon, drawX, drawY, 0, 0, 17, 17, 17, 17);
+            drawContext.getMatrices().pop();
+        } else {
+            drawContext.drawTexture(icon, drawX, drawY, 0, 0, 17, 17, 17, 17);
         }
-
-        // Calculate X position
-        int x = centerX + (int)(angleDiff * spacing / 45.0);
-
-        // Only draw if visible on screen (with padding)
-        if (x > edgePadding + 5 && x < screenWidth - edgePadding - 5) {
-            // Determine which icon variant to use:
-            // Use distant variant if either:
-            // 1. Distance is over 500 blocks, OR
-            // 2. Icon is within 15 degrees of either edge (|angleDiff| > 75)
-            boolean useDistant = distance > 500.0 || Math.abs(angleDiff) > 75;
-            Identifier icon = useDistant ? distantIcon : normalIcon;
-            
-            // Debug logging to verify distance calculation
-            if (distance > 500.0) {
-                AllTheHUD.LOGGER.debug("POI at distance {} blocks - using distant variant", (int)distance);
-            }
-            
-            // Scale and position for overlapping icons
-            if (isOverlapping) {
-                // Use matrix transformation to scale the icon by 90%
-                drawContext.getMatrices().push();
-                
-                // Translate to icon center, scale, translate back
-                float scale = 0.9f;
-                float iconCenterX = x;
-                float iconCenterY = barY - 19 + yOffset + 8.5f;  // 8.5 is half of 17
-                
-                drawContext.getMatrices().translate(iconCenterX, iconCenterY, 0);
-                drawContext.getMatrices().scale(scale, scale, 1.0f);
-                drawContext.getMatrices().translate(-iconCenterX, -iconCenterY, 0);
-                
-                // Draw at original size (scaling is handled by matrix)
-                drawContext.drawTexture(icon, x - 8, barY - 19 + yOffset, 0, 0, 17, 17, 17, 17);
-                
-                drawContext.getMatrices().pop();
-            } else {
-                // Draw at full size without scaling
-                drawContext.drawTexture(icon, x - 8, barY - 19 + yOffset, 0, 0, 17, 17, 17, 17);
-            }
-            return x;  // Return X position so we can track overlaps
-        }
-        return null;
     }
 }

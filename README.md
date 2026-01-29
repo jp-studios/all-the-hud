@@ -4,7 +4,17 @@
 
 ## **<span style="color:#e03e2d">⚠️ Alpha Release</span>**
 
-**<span style="color:#e03e2d">Available on Fabric for 1.20.1 and 1.21.1. Features are functional but still in development. <a href="https://github.com/jp-studios/all-the-hud/issues" target="_blank" rel="nofollow">Please report bugs!</a></span>**
+**<span style="color:#e03e2d">Available on Fabric for 1.20.1, 1.21.1, and 1.21.11. Features are functional but still in development. <a href="https://github.com/jp-studios/all-the-hud/issues" target="_blank" rel="nofollow">Please report bugs!</a></span>**
+
+### Multi-Version Support
+
+This project maintains **separate development environments** for different Minecraft API tiers:
+- **This directory (`all-the-hud-dev/`):** Supports Minecraft 1.20.1 and 1.21.1
+- **`../all-the-hud-1.21.11/`:** Supports Minecraft 1.21.11+ (separate due to breaking API changes)
+
+**For developers:** See `MULTI_VERSION_GUIDE.md` for complete documentation on the multi-version strategy.
+
+---
 
 Tired of installing dozens of separate HUD mods that bloat your modpack and conflict with other mods? I certainly did. All the HUD will _(eventually)_ combine the best features from multiple mods into a single, fully client-side solution that can work on any server.
 

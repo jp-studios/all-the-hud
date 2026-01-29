@@ -35,3 +35,8 @@ logs/
 
 # Claude Code
 CLAUDE.md
+SESSION_LOG.md
+
+# Internal working documents
+MULTI_VERSION_GUIDE.md
+RELEASE_0.2.0_SUMMARY.md

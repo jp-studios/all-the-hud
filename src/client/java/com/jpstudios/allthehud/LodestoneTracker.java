@@ -1,15 +1,17 @@
 package com.jpstudios.allthehud;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
-import net.minecraft.registry.RegistryKey;
 
 public class LodestoneTracker {
     private static final int MESSAGE_DELAY_TICKS = 15;
@@ -75,12 +77,26 @@ public class LodestoneTracker {
     private static LodestoneData getLodestoneData(ItemStack stack) {
         if (stack.isEmpty() || stack.getItem() != Items.COMPASS) return null;
 
-        LodestoneTrackerComponent component = stack.get(DataComponentTypes.LODESTONE_TRACKER);
-        if (component == null || !component.target().isPresent()) return null;
+        // In 1.20.1, lodestone data is stored in NBT
+        NbtCompound nbt = stack.getNbt();
+        if (nbt == null || !nbt.contains("LodestonePos") || !nbt.contains("LodestoneDimension")) {
+            return null;
+        }
 
-        GlobalPos globalPos = component.target().get();
-        BlockPos pos = globalPos.pos();
-        RegistryKey<World> dim = globalPos.dimension();
+        // Check if lodestone is tracked (not broken)
+        if (nbt.contains("LodestoneTracked") && !nbt.getBoolean("LodestoneTracked")) {
+            return null;
+        }
+
+        // Read position from NBT
+        BlockPos pos = NbtHelper.toBlockPos(nbt.getCompound("LodestonePos"));
+
+        // Read dimension from NBT
+        String dimString = nbt.getString("LodestoneDimension");
+        Identifier dimId = Identifier.tryParse(dimString);
+        if (dimId == null) return null;
+
+        RegistryKey<World> dim = RegistryKey.of(RegistryKeys.WORLD, dimId);
 
         return new LodestoneData(pos, dim);
     }

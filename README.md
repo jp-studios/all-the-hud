@@ -4,7 +4,7 @@
 
 ## **<span style="color:#e03e2d">⚠️ Alpha Release</span>**
 
-**<span style="color:#e03e2d">Available on Fabric for Minecraft 1.20.1 and 1.21.1 for now. Features are functional but still in development. <a href="https://github.com/jp-studios/all-the-hud/issues" target="_blank" rel="nofollow">Please report bugs!</a></span>**
+**<span style="color:#e03e2d">Available on Fabric for Minecraft 1.20.1. Features are functional but still in development. <a href="https://github.com/jp-studios/all-the-hud/issues" target="_blank" rel="nofollow">Please report bugs!</a></span>**
 
 ---
 

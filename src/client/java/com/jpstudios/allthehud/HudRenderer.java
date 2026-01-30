@@ -3,7 +3,6 @@ package com.jpstudios.allthehud;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -12,36 +11,36 @@ public class HudRenderer {
 
     // POI icon pairs (normal, distant)
     private static final Identifier[] WORLD_SPAWN_ICONS = {
-        Identifier.of("allthehud", "textures/poi-world-spawn.png"),
-        Identifier.of("allthehud", "textures/poi-world-spawn-distant.png")
+        new Identifier("allthehud", "textures/poi-world-spawn.png"),
+        new Identifier("allthehud", "textures/poi-world-spawn-distant.png")
     };
     private static final Identifier[] BED_ICONS = {
-        Identifier.of("allthehud", "textures/poi-bed.png"),
-        Identifier.of("allthehud", "textures/poi-bed-distant.png")
+        new Identifier("allthehud", "textures/poi-bed.png"),
+        new Identifier("allthehud", "textures/poi-bed-distant.png")
     };
     private static final Identifier[] DEATH_ICONS = {
-        Identifier.of("allthehud", "textures/poi-death.png"),
-        Identifier.of("allthehud", "textures/poi-death-distant.png")
+        new Identifier("allthehud", "textures/poi-death.png"),
+        new Identifier("allthehud", "textures/poi-death-distant.png")
     };
     private static final Identifier[] NETHER_PORTAL_ICONS = {
-        Identifier.of("allthehud", "textures/poi-nether.png"),
-        Identifier.of("allthehud", "textures/poi-nether-distant.png")
+        new Identifier("allthehud", "textures/poi-nether.png"),
+        new Identifier("allthehud", "textures/poi-nether-distant.png")
     };
     private static final Identifier[] END_PORTAL_ICONS = {
-        Identifier.of("allthehud", "textures/poi-end.png"),
-        Identifier.of("allthehud", "textures/poi-end-distant.png")
+        new Identifier("allthehud", "textures/poi-end.png"),
+        new Identifier("allthehud", "textures/poi-end-distant.png")
     };
     private static final Identifier[] END_GATEWAY_ICONS = {
-        Identifier.of("allthehud", "textures/poi-gateway.png"),
-        Identifier.of("allthehud", "textures/poi-gateway-distant.png")
+        new Identifier("allthehud", "textures/poi-gateway.png"),
+        new Identifier("allthehud", "textures/poi-gateway-distant.png")
     };
     private static final Identifier[] LODESTONE_ICONS = {
-        Identifier.of("allthehud", "textures/poi-lodestone.png"),
-        Identifier.of("allthehud", "textures/poi-lodestone-distant.png")
+        new Identifier("allthehud", "textures/poi-lodestone.png"),
+        new Identifier("allthehud", "textures/poi-lodestone-distant.png")
     };
     private static final Identifier[] RESPAWN_ANCHOR_ICONS = {
-        Identifier.of("allthehud", "textures/poi-respawn-beacon.png"),
-        Identifier.of("allthehud", "textures/poi-respawn-beacon-distant.png")
+        new Identifier("allthehud", "textures/poi-respawn-beacon.png"),
+        new Identifier("allthehud", "textures/poi-respawn-beacon-distant.png")
     };
 
     // Compass bar constants
@@ -54,7 +53,7 @@ public class HudRenderer {
         HudRenderCallback.EVENT.register(HudRenderer::renderHud);
     }
 
-    private static void renderHud(DrawContext drawContext, RenderTickCounter tickCounter) {
+    private static void renderHud(DrawContext drawContext, float tickDelta) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.options.hudHidden || client.player == null || client.world == null) return;
 

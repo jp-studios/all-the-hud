@@ -12,13 +12,22 @@ public class AllTheHUDClient implements ClientModInitializer {
 
 		// Register our HUD renderer
 		HudRenderer.register();
-		
+
 		// Register death tracking
 		DeathTracker.register();
-		
+
 		// Register bed tracking
 		BedTracker.register();
-		
+
+		// Register portal tracking (nether/end portals)
+		PortalTracker.register();
+
+		// Register lodestone tracking
+		LodestoneTracker.register();
+
+		// Register respawn anchor tracking
+		RespawnAnchorTracker.register();
+
 		// Register world change detection
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.world != null) {

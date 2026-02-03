@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1-beta] - 2026-02-02
+
+### Added
+- **Automatic POI cleanup**: POIs are now automatically removed when their blocks are broken (beds, respawn anchors, lodestones)
+- **POIBlockBreakMixin**: New mixin system detects when POI blocks are destroyed and clears markers
+
+### Changed
+- **Performance optimizations**: All tick event handlers now use throttling to reduce overhead on large modpacks
+  - World change detection: Checks every 20 ticks (1 second) instead of every tick
+  - Death tracking: Checks every 10 ticks (0.5 seconds) instead of every tick
+  - Lodestone tracking: Scans inventory every 20 ticks (1 second) instead of every tick
+- **Simplified dimension handling**: Cleaner dimension name detection for death messages
+- **Version management**: fabric.mod.json now uses Gradle version placeholder for easier multi-version support
+
+### Fixed
+- **Color rendering**: Fixed HUD text color values (0xFFFFFFFF : 0xFFAAAAAA) for proper alpha channel support
+
 ## [0.2.0-beta] - 2026-01-28
 
 ### Added

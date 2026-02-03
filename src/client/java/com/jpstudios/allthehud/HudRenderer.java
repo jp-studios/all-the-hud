@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -89,7 +90,7 @@ public class HudRenderer {
                 int textWidth = client.textRenderer.getWidth(dir);
                 boolean focused = Math.abs(angleDiff) < 20;
                 drawContext.drawText(client.textRenderer, dir, x - textWidth / 2, BAR_Y,
-                    focused ? 0xFFFFFF : 0xAAAAAA, focused);
+                    focused ? 0xFFFFFFFF : 0xFFAAAAAA, focused);
             }
         }
 
@@ -123,7 +124,7 @@ public class HudRenderer {
         boolean isEnd = dimKey == World.END;
 
         // Calculate all POI X positions for overlap detection
-        Integer spawnX = isOverworld ? calcPOIX(client, client.world.getSpawnPos(), centerX, yaw, edgePadding, screenWidth) : null;
+        Integer spawnX = isOverworld ? calcPOIX(client, getWorldSpawn(client), centerX, yaw, edgePadding, screenWidth) : null;
         Integer bedX = isOverworld ? calcPOIX(client, POIData.getBedLocation(), centerX, yaw, edgePadding, screenWidth) : null;
         Integer netherX = (isOverworld || isNether) ? calcPOIX(client, POIData.getNetherPortalLocation(isNether), centerX, yaw, edgePadding, screenWidth) : null;
         Integer endX = (isOverworld || isEnd) ? calcPOIX(client, POIData.getEndPortalLocation(isEnd), centerX, yaw, edgePadding, screenWidth) : null;
@@ -137,7 +138,7 @@ public class HudRenderer {
         if (isOverworld) {
             // Order: spawn, nether, end, lodestone, bed, death
             Integer[] after = {netherX, endX, lodestoneX, bedX, deathX};
-            drawPOI(drawContext, client, client.world.getSpawnPos(), WORLD_SPAWN_ICONS, centerX, yaw, edgePadding, screenWidth,
+            drawPOI(drawContext, client, getWorldSpawn(client), WORLD_SPAWN_ICONS, centerX, yaw, edgePadding, screenWidth,
                 false, anyOverlap(spawnX, after));
 
             Integer[] beforeN = {spawnX};
@@ -158,7 +159,7 @@ public class HudRenderer {
             }
 
             BlockPos bedPos = POIData.getBedLocation();
-            if (bedPos != null && !bedPos.equals(client.world.getSpawnPos())) {
+            if (bedPos != null && !bedPos.equals(getWorldSpawn(client))) {
                 Integer[] beforeB = {spawnX, netherX, endX, lodestoneX};
                 Integer[] afterB = {deathX};
                 drawPOI(drawContext, client, bedPos, BED_ICONS, centerX, yaw, edgePadding, screenWidth,
@@ -239,7 +240,7 @@ public class HudRenderer {
 
     /** Calculate POI X position (null if not visible) */
     private static Integer calcPOIX(MinecraftClient client, BlockPos pos, int centerX, float yaw, int edgePadding, int screenWidth) {
-        if (pos == null) return null;
+        if (pos == null || client.player == null) return null;
 
         double dx = pos.getX() - client.player.getX();
         double dz = pos.getZ() - client.player.getZ();
@@ -255,7 +256,7 @@ public class HudRenderer {
     private static void drawPOI(DrawContext drawContext, MinecraftClient client, BlockPos pos, Identifier[] icons,
                                 int centerX, float yaw, int edgePadding, int screenWidth,
                                 boolean overlapsBefore, boolean overlapsAfter) {
-        if (pos == null) return;
+        if (pos == null || client.player == null) return;
 
         double dx = pos.getX() - client.player.getX();
         double dz = pos.getZ() - client.player.getZ();
@@ -284,16 +285,45 @@ public class HudRenderer {
         int drawY = BAR_Y - 19 + yOff;
 
         if (isOverlapping) {
-            drawContext.getMatrices().push();
-            float iconCenterX = x + xOff;
-            float iconCenterY = BAR_Y - 19 + yOff + 8.5f;
-            drawContext.getMatrices().translate(iconCenterX, iconCenterY, 0);
-            drawContext.getMatrices().scale(0.9f, 0.9f, 1.0f);
-            drawContext.getMatrices().translate(-iconCenterX, -iconCenterY, 0);
-            drawContext.drawTexture(icon, drawX, drawY, 0, 0, 17, 17, 17, 17);
-            drawContext.getMatrices().pop();
+            // Scale to ~88% using matrix transformations
+            var matrices = drawContext.getMatrices();
+            matrices.pushMatrix();
+
+            float scale = 15.0f / 17.0f;  // Target scale factor
+            int iconCenterX = x + xOff;
+            int iconCenterY = BAR_Y - 19 + 8 + yOff;  // Center of 17x17 icon
+
+            // Translate to center point, scale, then translate back
+            matrices.translate(iconCenterX, iconCenterY);
+            matrices.scale(scale, scale);
+            matrices.translate(-8.5f, -8.5f);  // Offset to center the 17x17 icon
+
+            drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, icon, 0, 0, 0.0f, 0.0f, 17, 17, 17, 17);
+            matrices.popMatrix();
         } else {
-            drawContext.drawTexture(icon, drawX, drawY, 0, 0, 17, 17, 17, 17);
+            drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, icon, drawX, drawY, 0.0f, 0.0f, 17, 17, 17, 17);
+        }
+    }
+
+    /** Get world spawn position - API changed in 1.21.11 */
+    private static BlockPos getWorldSpawn(MinecraftClient client) {
+        if (client == null || client.world == null) {
+            return new BlockPos(0, 64, 0);
+        }
+        try {
+            var spawnPoint = client.world.getLevelProperties().getSpawnPoint();
+            if (spawnPoint == null) {
+                return new BlockPos(0, 64, 0);
+            }
+            // Try common accessor patterns - SpawnPoint might be a record
+            java.lang.reflect.Method method = spawnPoint.getClass().getMethod("x");
+            int x = (int) method.invoke(spawnPoint);
+            int y = (int) spawnPoint.getClass().getMethod("y").invoke(spawnPoint);
+            int z = (int) spawnPoint.getClass().getMethod("z").invoke(spawnPoint);
+            return new BlockPos(x, y, z);
+        } catch (Exception e) {
+            // Fallback to origin if API changed
+            return new BlockPos(0, 64, 0);
         }
     }
 }

@@ -31,10 +31,9 @@ public class BedTracker {
             BlockPos bedFoot = state.get(BedBlock.PART) == BedPart.FOOT ? bedPos : bedPos.offset(facing.getOpposite());
 
             // Calculate relative position and rotate based on bed facing
-            Vec3d playerPos = player.getPos();
-            double relX = playerPos.x - (bedFoot.getX() + 0.5);
-            double relY = playerPos.y - bedFoot.getY();
-            double relZ = playerPos.z - (bedFoot.getZ() + 0.5);
+            double relX = player.getX() - (bedFoot.getX() + 0.5);
+            double relY = player.getY() - bedFoot.getY();
+            double relZ = player.getZ() - (bedFoot.getZ() + 0.5);
 
             // Rotate coordinates: SOUTH=0, WEST=90, NORTH=180, EAST=270
             double rotatedX = facing == Direction.SOUTH ? relX : facing == Direction.NORTH ? -relX :

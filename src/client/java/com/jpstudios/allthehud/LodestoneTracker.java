@@ -13,15 +13,20 @@ import net.minecraft.registry.RegistryKey;
 
 public class LodestoneTracker {
     private static final int MESSAGE_DELAY_TICKS = 15;
+    private static final int CHECK_INTERVAL = 20; // Check every 20 ticks (1 second)
 
     private static BlockPos trackedPos = null;
     private static RegistryKey<World> trackedDimension = null;
     private static boolean trackedBothHands = false;
     private static int holdTicks = 0;
     private static boolean messageSent = false;
+    private static int tickCounter = 0;
 
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            // Throttle inventory scanning to reduce overhead on large modpacks
+            if (++tickCounter % CHECK_INTERVAL != 0) return;
+
             if (client.player == null || client.world == null) return;
 
             // Get lodestone data from both hands (off-hand priority)
@@ -54,10 +59,10 @@ public class LodestoneTracker {
                 messageSent = false;
             }
             trackedBothHands = bothHands;
-            holdTicks++;
+            holdTicks += CHECK_INTERVAL; // Increment by interval since we're throttled
 
             // Send message after delay
-            if (holdTicks == MESSAGE_DELAY_TICKS && !messageSent) {
+            if (holdTicks >= MESSAGE_DELAY_TICKS && !messageSent) {
                 messageSent = true;
                 String dimName = active.dimension == World.OVERWORLD ? "Overworld" :
                                  active.dimension == World.NETHER ? "Nether" :

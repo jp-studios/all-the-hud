@@ -89,7 +89,7 @@ public class HudRenderer {
                 int textWidth = client.textRenderer.getWidth(dir);
                 boolean focused = Math.abs(angleDiff) < 20;
                 drawContext.drawText(client.textRenderer, dir, x - textWidth / 2, BAR_Y,
-                    focused ? 0xFFFFFF : 0xAAAAAA, focused);
+                    focused ? 0xFFFFFFFF : 0xFFAAAAAA, focused);
             }
         }
 
@@ -239,7 +239,7 @@ public class HudRenderer {
 
     /** Calculate POI X position (null if not visible) */
     private static Integer calcPOIX(MinecraftClient client, BlockPos pos, int centerX, float yaw, int edgePadding, int screenWidth) {
-        if (pos == null) return null;
+        if (pos == null || client.player == null) return null;
 
         double dx = pos.getX() - client.player.getX();
         double dz = pos.getZ() - client.player.getZ();
@@ -255,7 +255,7 @@ public class HudRenderer {
     private static void drawPOI(DrawContext drawContext, MinecraftClient client, BlockPos pos, Identifier[] icons,
                                 int centerX, float yaw, int edgePadding, int screenWidth,
                                 boolean overlapsBefore, boolean overlapsAfter) {
-        if (pos == null) return;
+        if (pos == null || client.player == null) return;
 
         double dx = pos.getX() - client.player.getX();
         double dz = pos.getZ() - client.player.getZ();

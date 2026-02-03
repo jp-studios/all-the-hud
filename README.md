@@ -2,7 +2,7 @@
 
 # All the HUD: One HUD mod to rule them all
 
-## **<span style="color:#e03e2d">⚠️ Alpha Release</span>**
+## **<span style="color:#e03e2d">⚠️ Beta Release</span>**
 
 **<span style="color:#e03e2d">Available on Fabric for Minecraft 1.20.1, 1.21.1, and 1.21.11. Features are functional but still in development. <a href="https://github.com/jp-studios/all-the-hud/issues" target="_blank" rel="nofollow">Please report bugs!</a></span>**
 
@@ -24,7 +24,7 @@ Tired of installing dozens of separate HUD mods that bloat your modpack and conf
 
 ***
 
-# **<span style="color:#2dc26b">Current Alpha Features</span>**
+# **<span style="color:#2dc26b">Current Beta Features</span>**
 
 ### **🧭 Vanilla-Friendly Compass Bar**
 
@@ -39,9 +39,9 @@ Never get lost again. Get a clean, scrolling compass with icons for important lo
 *   ☠️ **Latest Death** - Skull icon marking your latest death (auto-clears when you return) and even puts your death coordinates in a private chat
 *   🏠 **Latest Bed** - House icon marking your most recent bed/respawn point set _(even Xaero's doesn't do this!)_
 *   🌎 **World Spawn** - Blue globe helps keep you oriented
-*   🌐 **Nether Portal** - Tracks portal locations in Overworld and Nether when you travel between dimensions
-*   🌀 **End Portal** - Tracks stronghold portals in Overworld and return portals in The End
-*   🚪 **End Gateway** - Tracks outer End island gateways (teleports >100 blocks detected)
+*   🌐 **Nether Portal** - Tracks your latest portal location in Overworld and Nether when you travel between dimensions
+*   🌀 **End Portal** - Tracks stronghold portals in Overworld and the Main Island return portal in The End
+*   🚪 **End Gateway** - Tracks the latest Outer Island entries and exits through End Gateways to always find your way back
 *   🧭 **Lodestone** - Shows lodestone location when holding a lodestone compass in either hand (off-hand takes priority)
 *   ⚛️ **Respawn Anchor** - Tracks nether respawn points when setting spawn at a charged respawn anchor
 
@@ -55,13 +55,13 @@ _Any updates about your death coordinates or the items on the compass are shown 
 
 ***
 
-# **<span style="color:#f1c40f">Future Alpha Updates (What I'm Currently Working On)</span>**
+# **<span style="color:#f1c40f">Future Updates (What I'm Currently Working On)</span>**
 
 **Adding Features to the Compass**
 
-*   ⚙️ In-game config screen and settings import/export
-*   ⚛️ Condensed compass views and other visual options
 *   🗺️ Holding a map indicates where you need to go to reach the map area
+*   ⚙️ In-game config screen and settings import/export
+*   ⚛️ Alternate compass views (condensed options and experience bar overlays)
 
 **Want to request a feature?** [Open an issue on GitHub!](https://github.com/jp-studios/all-the-hud/issues)
 

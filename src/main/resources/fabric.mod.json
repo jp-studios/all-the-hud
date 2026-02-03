@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "allthehud",
-	"version": "0.2.0-beta",
+	"version": "${version}",
 	"name": "All the HUD",
 	"description": "One HUD mod to rule them all",
 	"authors": [

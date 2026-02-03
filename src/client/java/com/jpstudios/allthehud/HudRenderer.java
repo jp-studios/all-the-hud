@@ -88,7 +88,7 @@ public class HudRenderer {
                 int textWidth = client.textRenderer.getWidth(dir);
                 boolean focused = Math.abs(angleDiff) < 20;
                 drawContext.drawText(client.textRenderer, dir, x - textWidth / 2, BAR_Y,
-                    focused ? 0xFFFFFF : 0xAAAAAA, focused);
+                    focused ? 0xFFFFFFFF : 0xFFAAAAAA, focused);
             }
         }
 

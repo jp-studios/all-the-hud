@@ -6,11 +6,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class DeathTracker {
+    private static final int CHECK_INTERVAL = 10; // Check every 10 ticks (0.5 seconds)
+
     private static boolean wasAlive = true;
+    private static int tickCounter = 0;
 
     public static void register() {
-        // Check every tick if player died
+        // Check periodically if player died
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            // Throttle checks to reduce overhead
+            if (++tickCounter % CHECK_INTERVAL != 0) return;
             if (client.player == null) {
                 wasAlive = true;
                 return;
@@ -26,14 +31,9 @@ public class DeathTracker {
                 POIData.setDeathLocation(deathPos, dimKey);
 
                 // Get dimension name for message
-                String dimName = client.world.getRegistryKey().getValue().toString();
-                if (dimName.contains("overworld")) {
-                    dimName = "Overworld";
-                } else if (dimName.contains("nether")) {
-                    dimName = "Nether";
-                } else if (dimName.contains("end")) {
-                    dimName = "End";
-                }
+                String dimName = dimKey == World.OVERWORLD ? "Overworld" :
+                                 dimKey == World.NETHER ? "Nether" :
+                                 dimKey == World.END ? "End" : dimKey.getValue().toString();
 
                 // Send death message in grey
                 client.player.sendMessage(

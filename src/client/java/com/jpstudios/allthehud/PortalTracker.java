@@ -15,6 +15,15 @@ public class PortalTracker {
     private static boolean needsGatewayUpdate = false;
     private static boolean wasAlive = true;
 
+    public static void resetState() {
+        lastDimension = null;
+        lastPos = null;
+        ticksSinceChange = 0;
+        needsNetherUpdate = false;
+        needsOverworldUpdate = false;
+        needsGatewayUpdate = false;
+    }
+
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.world == null) return;

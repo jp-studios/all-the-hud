@@ -13,48 +13,66 @@ public class POIStorage {
     private static String currentWorldId = null;
 
     public static class SavedPOIData {
-        public BlockPos bedLocation, deathLocation, respawnAnchorLocation;
-        public BlockPos netherPortalOverworldLocation, netherPortalNetherLocation;
-        public BlockPos endPortalOverworldLocation, endPortalEndLocation, endGatewayLocation;
-        public BlockPos lodestoneLocation;
+        public int[] bedLocation, deathLocation, respawnAnchorLocation;
+        public int[] netherPortalOverworldLocation, netherPortalNetherLocation;
+        public int[] endPortalOverworldLocation, endPortalEndLocation, endGatewayLocation;
+        public int[] lodestoneLocation;
         public String deathDimension, lodestoneDimension;
     }
 
-    private static String getWorldId() {
+    private static int[] posToArray(BlockPos pos) {
+        if (pos == null) return null;
+        return new int[] { pos.getX(), pos.getY(), pos.getZ() };
+    }
+
+    private static BlockPos arrayToPos(int[] arr) {
+        if (arr == null || arr.length != 3) return null;
+        return new BlockPos(arr[0], arr[1], arr[2]);
+    }
+
+    static String getWorldId() {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) return "unknown";
+        if (client.world == null) return null;
 
         if (client.isInSingleplayer() && client.getServer() != null) {
             return "world_" + Long.toHexString(client.getServer().getOverworld().getSeed());
         } else if (client.getCurrentServerEntry() != null) {
             return client.getCurrentServerEntry().address.replace(':', '_').replace('.', '_');
         }
-        return "unknown";
+        return null;
     }
 
-    private static File getSaveFile() {
+    private static File getSaveFile(String worldId) {
         if (configDir == null) {
             configDir = new File(MinecraftClient.getInstance().runDirectory, "config/allthehud");
             configDir.mkdirs();
         }
-        return new File(configDir, "pois_" + getWorldId() + ".json");
+        return new File(configDir, "pois_" + worldId + ".json");
     }
 
     public static void save() {
+        // Only save if world is initialized and matches what we expect
+        if (currentWorldId == null) return;
+
+        String actualWorldId = getWorldId();
+        if (actualWorldId == null || !actualWorldId.equals(currentWorldId)) return;
+
+        File saveFile = getSaveFile(currentWorldId);
+
         SavedPOIData data = new SavedPOIData();
-        data.bedLocation = POIData.getBedLocation();
-        data.deathLocation = POIData.getDeathLocation();
+        data.bedLocation = posToArray(POIData.getBedLocation());
+        data.deathLocation = posToArray(POIData.getDeathLocation());
         data.deathDimension = POIData.getDeathDimension() != null ? POIData.getDeathDimension().getValue().toString() : null;
-        data.respawnAnchorLocation = POIData.getRespawnAnchorLocation();
-        data.netherPortalOverworldLocation = POIData.getNetherPortalOverworldLocation();
-        data.netherPortalNetherLocation = POIData.getNetherPortalNetherLocation();
-        data.endPortalOverworldLocation = POIData.getEndPortalOverworldLocation();
-        data.endPortalEndLocation = POIData.getEndPortalEndLocation();
-        data.endGatewayLocation = POIData.getEndGatewayLocation();
-        data.lodestoneLocation = POIData.getLodestoneLocation();
+        data.respawnAnchorLocation = posToArray(POIData.getRespawnAnchorLocation());
+        data.netherPortalOverworldLocation = posToArray(POIData.getNetherPortalOverworldLocation());
+        data.netherPortalNetherLocation = posToArray(POIData.getNetherPortalNetherLocation());
+        data.endPortalOverworldLocation = posToArray(POIData.getEndPortalOverworldLocation());
+        data.endPortalEndLocation = posToArray(POIData.getEndPortalEndLocation());
+        data.endGatewayLocation = posToArray(POIData.getEndGatewayLocation());
+        data.lodestoneLocation = posToArray(POIData.getLodestoneLocation());
         data.lodestoneDimension = POIData.getLodestoneDimension() != null ? POIData.getLodestoneDimension().getValue().toString() : null;
 
-        try (FileWriter writer = new FileWriter(getSaveFile())) {
+        try (FileWriter writer = new FileWriter(saveFile)) {
             GSON.toJson(data, writer);
         } catch (IOException e) {
             AllTheHUD.LOGGER.error("Failed to save POI data", e);
@@ -62,22 +80,34 @@ public class POIStorage {
     }
 
     public static void load() {
-        File saveFile = getSaveFile();
+        if (currentWorldId == null) return;
+
+        File saveFile = getSaveFile(currentWorldId);
         if (!saveFile.exists()) return;
 
         try (FileReader reader = new FileReader(saveFile)) {
             SavedPOIData data = GSON.fromJson(reader, SavedPOIData.class);
             if (data == null) return;
 
-            if (data.bedLocation != null) POIData.setBedLocationSilent(data.bedLocation);
-            if (data.deathLocation != null) POIData.setDeathLocationSilent(data.deathLocation, data.deathDimension);
-            if (data.respawnAnchorLocation != null) POIData.setRespawnAnchorLocationSilent(data.respawnAnchorLocation);
-            if (data.netherPortalOverworldLocation != null) POIData.setNetherPortalOverworldLocationSilent(data.netherPortalOverworldLocation);
-            if (data.netherPortalNetherLocation != null) POIData.setNetherPortalNetherLocationSilent(data.netherPortalNetherLocation);
-            if (data.endPortalOverworldLocation != null) POIData.setEndPortalOverworldLocationSilent(data.endPortalOverworldLocation);
-            if (data.endPortalEndLocation != null) POIData.setEndPortalEndLocationSilent(data.endPortalEndLocation);
-            if (data.endGatewayLocation != null) POIData.setEndGatewayLocationSilent(data.endGatewayLocation);
-            if (data.lodestoneLocation != null) POIData.setLodestoneLocationSilent(data.lodestoneLocation, data.lodestoneDimension);
+            BlockPos bed = arrayToPos(data.bedLocation);
+            BlockPos death = arrayToPos(data.deathLocation);
+            BlockPos anchor = arrayToPos(data.respawnAnchorLocation);
+            BlockPos npOverworld = arrayToPos(data.netherPortalOverworldLocation);
+            BlockPos npNether = arrayToPos(data.netherPortalNetherLocation);
+            BlockPos epOverworld = arrayToPos(data.endPortalOverworldLocation);
+            BlockPos epEnd = arrayToPos(data.endPortalEndLocation);
+            BlockPos gateway = arrayToPos(data.endGatewayLocation);
+            BlockPos lodestone = arrayToPos(data.lodestoneLocation);
+
+            if (bed != null) POIData.setBedLocationSilent(bed);
+            if (death != null) POIData.setDeathLocationSilent(death, data.deathDimension);
+            if (anchor != null) POIData.setRespawnAnchorLocationSilent(anchor);
+            if (npOverworld != null) POIData.setNetherPortalOverworldLocationSilent(npOverworld);
+            if (npNether != null) POIData.setNetherPortalNetherLocationSilent(npNether);
+            if (epOverworld != null) POIData.setEndPortalOverworldLocationSilent(epOverworld);
+            if (epEnd != null) POIData.setEndPortalEndLocationSilent(epEnd);
+            if (gateway != null) POIData.setEndGatewayLocationSilent(gateway);
+            if (lodestone != null) POIData.setLodestoneLocationSilent(lodestone, data.lodestoneDimension);
         } catch (IOException e) {
             AllTheHUD.LOGGER.error("Failed to load POI data", e);
         }
@@ -85,9 +115,12 @@ public class POIStorage {
 
     public static void onWorldChange() {
         String newWorldId = getWorldId();
+        if (newWorldId == null) return;
+
         if (!newWorldId.equals(currentWorldId)) {
             currentWorldId = newWorldId;
             POIData.clearAllSilent();
+            PortalTracker.resetState();
             load();
         }
     }

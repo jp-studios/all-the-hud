@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2-beta] - 2026-02-07
+
+### Fixed
+- **World memory corruption**: POI data no longer mixes between worlds when switching saves
+- **POI persistence**: POI markers now correctly persist after restarting Minecraft
+- **World change detection**: Now runs every tick and registers before trackers to prevent race conditions
+- **PortalTracker state reset**: Static tracker state is now cleared on world switch to prevent false dimension-change detection
+- **JSON serialization**: BlockPos now serialized as `int[]` arrays instead of obfuscated field names for reliable cross-version storage
+- **Old config compatibility**: Gracefully handles old-format config files by deleting and starting fresh instead of crashing
+
+### Changed
+- **POIStorage rewrite**: `save()` now validates world ID matches before writing, `getSaveFile()` takes explicit world ID parameter, `getWorldId()` returns null instead of "unknown"
+
 ## [0.2.1-beta] - 2026-02-02
 
 ### Added
